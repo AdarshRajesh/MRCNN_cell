@@ -200,7 +200,7 @@ class BalloonDataset(utils.Dataset):
             super(self.__class__, self).image_reference(image_id)
 
 
-def train(data_directory,model_path):
+def train(data_directory,model_path,log_path):
     """Train the model."""
     # Training dataset.
     dataset_train = BalloonDataset()
@@ -219,7 +219,7 @@ def train(data_directory,model_path):
 
     # Create model
     model = modellib.MaskRCNN(mode="training", config=config,
-                                  model_dir=args.logs)
+                                  model_dir=log_path)
 
 
     # Select weights file to load
