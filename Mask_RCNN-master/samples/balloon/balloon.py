@@ -200,7 +200,7 @@ class BalloonDataset(utils.Dataset):
             super(self.__class__, self).image_reference(image_id)
 
 
-def train(model):
+def train(data_directory,model_path):
     """Train the model."""
     # Training dataset.
     dataset_train = BalloonDataset()
