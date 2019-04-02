@@ -235,11 +235,11 @@ def train(data_directory,model_path,log_path):
         # Start from ImageNet trained weights
         weights_path = model.get_imagenet_weights()
     else:
-        weights_path = weights
+        weights_path = model_path
 
     # Load weights
     print("Loading weights ", weights_path)
-    if args.weights.lower() == "coco":
+    if model_path == "coco":
         # Exclude the last layers because they require a matching
         # number of classes
         model.load_weights(weights_path, by_name=True, exclude=[
