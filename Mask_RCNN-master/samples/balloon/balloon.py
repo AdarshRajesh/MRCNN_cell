@@ -204,14 +204,54 @@ def train(model):
     """Train the model."""
     # Training dataset.
     dataset_train = BalloonDataset()
-    dataset_train.load_balloon(args.dataset, "train")
+    dataset_train.load_balloon(data_directory, "train")
     dataset_train.prepare()
 
     # Validation dataset
     dataset_val = BalloonDataset()
-    dataset_val.load_balloon(args.dataset, "val")
+    dataset_val.load_balloon(data_directory, "val")
     dataset_val.prepare()
 
+    
+    
+    config = BalloonConfig()
+ 
+
+    # Create model
+    model = modellib.MaskRCNN(mode="training", config=config,
+                                  model_dir=args.logs)
+
+
+    # Select weights file to load
+    if model_path == "coco":
+        weights_path = COCO_WEIGHTS_PATH
+        # Download weights file
+        if not os.path.exists(weights_path):
+            utils.download_trained_weights(weights_path)
+    elif model_path == "last":
+        # Find last trained weights
+        weights_path = model.find_last()
+    elif model_path == "imagenet":
+        # Start from ImageNet trained weights
+        weights_path = model.get_imagenet_weights()
+    else:
+        weights_path = weights
+
+    # Load weights
+    print("Loading weights ", weights_path)
+    if args.weights.lower() == "coco":
+        # Exclude the last layers because they require a matching
+        # number of classes
+        model.load_weights(weights_path, by_name=True, exclude=[
+            "mrcnn_class_logits", "mrcnn_bbox_fc",
+            "mrcnn_bbox", "mrcnn_mask"])
+    else:
+        model.load_weights(weights_path, by_name=True)
+
+
+    
+    
+    
     # *** This training schedule is an example. Update to your needs ***
     # Since we're using a very small dataset, and starting from
     # COCO trained weights, we don't need to train too long. Also,
