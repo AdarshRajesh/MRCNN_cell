@@ -166,15 +166,15 @@ class BalloonDataset(utils.Dataset):
               test_ids = next(os.walk(dataset_dir))[2]
               for id_ in tqdm((train_ids), total=len(train_ids)):
                      image_path = dataset_dir + id_
-                          image = skimage.io.imread(image_path)
-                          height, width = image.shape[:2]
-                             self.add_image(
-                              "balloon",
-                              image_id=id_,  # use file name as a unique image id
-                              path=image_path,
-                              width=width, height=height,
-                              polygons=None)
-       
+                     image = skimage.io.imread(image_path)
+                     height, width = image.shape[:2]
+                     self.add_image(
+                       "balloon",
+                       image_id=id_,  # use file name as a unique image id
+                       path=image_path,
+                       width=width, height=height,
+                       polygons=None)
+
        
     def load_mask(self, image_id):
         """Generate instance masks for an image.
