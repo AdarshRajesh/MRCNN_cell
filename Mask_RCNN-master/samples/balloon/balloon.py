@@ -128,39 +128,39 @@ class BalloonDataset(utils.Dataset):
                 #polygons = [r['shape_attributes'] for r in a['regions']] 
         if subset == "train" or subset =="val":
                data = json.load(open(os.path.join(dataset_dir, "region_data.json")))
-                      #with open('D:\Segmentation_project\Final\MaskExp.json') as f:
-                       #   data = json.load(f)
-                      #f.close()        
+               #with open('D:\Segmentation_project\Final\MaskExp.json') as f:
+                #   data = json.load(f)
+               #f.close()        
 
-                      for img in data:
-                          #print(img['External ID'][0:-4] +'.tif')
-                          polygons = []    
-                          if 'Masks' in img:
-                              for region in img['Label']['Cell']:
-                                  all_points_x = []
-                                  all_points_y = []
-                                  #print('region:', region)
-                                  for xy in region['geometry']:
-                                      all_points_x.append(xy['x'])
-                                      all_points_y.append(xy['y'])
-                                  temp_dict = {'all_points_x': all_points_x, 'all_points_y': all_points_y, 'name': 'polygon'}
-                                  #print(temp_dict)
-                                  polygons.append(temp_dict)
-                             # print(polygons)
+               for img in data:
+                   #print(img['External ID'][0:-4] +'.tif')
+                   polygons = []    
+                   if 'Masks' in img:
+                       for region in img['Label']['Cell']:
+                           all_points_x = []
+                           all_points_y = []
+                           #print('region:', region)
+                           for xy in region['geometry']:
+                               all_points_x.append(xy['x'])
+                               all_points_y.append(xy['y'])
+                           temp_dict = {'all_points_x': all_points_x, 'all_points_y': all_points_y, 'name': 'polygon'}
+                           #print(temp_dict)
+                           polygons.append(temp_dict)
+                      # print(polygons)
 
-                          # load_mask() needs the image size to convert polygons to masks.
-                          # Unfortunately, VIA doesn't include it in JSON, so we must read
-                          # the image. This is only managable since the dataset is tiny.
-                          image_path = os.path.join(dataset_dir, img['External ID'][0:-4] +'.tif')
-                          image = skimage.io.imread(image_path)
-                          height, width = image.shape[:2]
+                   # load_mask() needs the image size to convert polygons to masks.
+                   # Unfortunately, VIA doesn't include it in JSON, so we must read
+                   # the image. This is only managable since the dataset is tiny.
+                   image_path = os.path.join(dataset_dir, img['External ID'][0:-4] +'.tif')
+                   image = skimage.io.imread(image_path)
+                   height, width = image.shape[:2]
 
-                          self.add_image(
-                              "balloon",
-                              image_id=img['External ID'][0:-4] +'.tif',  # use file name as a unique image id
-                              path=image_path,
-                              width=width, height=height,
-                              polygons=polygons)
+                   self.add_image(
+                       "balloon",
+                       image_id=img['External ID'][0:-4] +'.tif',  # use file name as a unique image id
+                       path=image_path,
+                       width=width, height=height,
+                       polygons=polygons)
                       
         elif subset == "test":
               test_ids = next(os.walk(dataset_dir))[2]
