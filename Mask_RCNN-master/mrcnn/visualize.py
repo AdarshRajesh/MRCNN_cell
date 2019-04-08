@@ -169,6 +169,8 @@ def display_instances(image, boxes, masks, class_ids, class_names,
 
     if auto_show:
         plt.show()
+     
+    return masked_image
 
 
 def display_differences(image,
