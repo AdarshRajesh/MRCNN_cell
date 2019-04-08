@@ -98,7 +98,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     colors: (optional) An array or colors to use with each object
     captions: (optional) A list of strings to use as captions for each object
     """
-    #image = image/65535
+    image = image/65535
     # Number of instances
     N = boxes.shape[0]
     if not N:
