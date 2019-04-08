@@ -91,7 +91,9 @@ class BalloonDataset(utils.Dataset):
 
         # Train or validation dataset?
         assert subset in ["train", "val","test"]
+        print(dataset_dir)
         dataset_dir = os.path.join(dataset_dir, subset)
+        print(dataset_dir)
 
         # Load annotations
         # VGG Image Annotator (up to version 1.6) saves each image in the form:
@@ -165,6 +167,7 @@ class BalloonDataset(utils.Dataset):
         elif subset == "test":
               test_ids = next(os.walk(dataset_dir))[2]
               for id_ in tqdm((test_ids), total=len(test_ids)):
+                     print(dataset_dir)
                      image_path = dataset_dir + id_
                      image = skimage.io.imread(image_path)
                      height, width = image.shape[:2]
