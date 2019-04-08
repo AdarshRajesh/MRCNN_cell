@@ -164,7 +164,7 @@ class BalloonDataset(utils.Dataset):
                       
         elif subset == "test":
               test_ids = next(os.walk(dataset_dir))[2]
-              for id_ in tqdm((train_ids), total=len(test_ids)):
+              for id_ in tqdm((test_ids), total=len(test_ids)):
                      image_path = dataset_dir + id_
                      image = skimage.io.imread(image_path)
                      height, width = image.shape[:2]
