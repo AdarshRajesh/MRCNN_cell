@@ -138,21 +138,21 @@ class BalloonDataset(utils.Dataset):
                    #print(img['External ID'][0:-4] +'.tif')
                    polygons = []    
                    if 'Masks' in img:
-                         try:
-                             img['Label']['cell']
-                             flag = 'cell'
-                         except:
-                             flag = 'Cell'
-                       for region in img['Label'][flag]:
-                           all_points_x = []
-                           all_points_y = []
-                           #print('region:', region)
-                           for xy in region['geometry']:
+                     try:
+                            img['Label']['cell']
+                            flag = 'cell'
+                     except:
+                            flag = 'Cell'
+                     for region in img['Label'][flag]:
+                            all_points_x = []
+                            all_points_y = []
+                            #print('region:', region)
+                            for xy in region['geometry']:
                                all_points_x.append(xy['x'])
                                all_points_y.append(xy['y'])
-                           temp_dict = {'all_points_x': all_points_x, 'all_points_y': all_points_y, 'name': 'polygon'}
-                           #print(temp_dict)
-                           polygons.append(temp_dict)
+                            temp_dict = {'all_points_x': all_points_x, 'all_points_y': all_points_y, 'name': 'polygon'}
+                            #print(temp_dict)
+                            polygons.append(temp_dict)
                       # print(polygons)
 
                    # load_mask() needs the image size to convert polygons to masks.
