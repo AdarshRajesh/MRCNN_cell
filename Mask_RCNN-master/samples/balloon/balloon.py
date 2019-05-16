@@ -138,7 +138,12 @@ class BalloonDataset(utils.Dataset):
                    #print(img['External ID'][0:-4] +'.tif')
                    polygons = []    
                    if 'Masks' in img:
-                       for region in img['Label']['Cell']:
+                         try:
+                             img['Label']['cell']
+                             flag = 'cell'
+                         except:
+                             flag = 'Cell'
+                       for region in img['Label'][flag]:
                            all_points_x = []
                            all_points_y = []
                            #print('region:', region)
