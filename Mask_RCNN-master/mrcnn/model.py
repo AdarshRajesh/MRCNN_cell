@@ -921,6 +921,8 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
     """
     # ROI Pooling
     # Shape: [batch, num_rois, POOL_SIZE, POOL_SIZE, channels]
+    print(pool_size)
+    print([rois,image_meta]+feature_maps)
     x = PyramidROIAlign([pool_size, pool_size],
                         name="roi_align_classifier")([rois, image_meta] + feature_maps)
     print(x)
