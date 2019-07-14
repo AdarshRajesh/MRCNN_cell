@@ -1958,9 +1958,6 @@ class MaskRCNN():
         # Generate proposals
         # Proposals are [batch, N, (y1, x1, y2, x2)] in normalized coordinates
         # and zero padded.
-        print(proposal_count)
-        print(config.RPN_NMS_THRESHOLD)
-        print([rpn_class, rpn_bbox, anchors])
         proposal_count = config.POST_NMS_ROIS_TRAINING if mode == "training"\
             else config.POST_NMS_ROIS_INFERENCE
         rpn_rois = ProposalLayer(
@@ -1968,6 +1965,9 @@ class MaskRCNN():
             nms_threshold=config.RPN_NMS_THRESHOLD,
             name="ROI",
             config=config)([rpn_class, rpn_bbox, anchors])
+	print(proposal_count)
+        print(config.RPN_NMS_THRESHOLD)
+        print([rpn_class, rpn_bbox, anchors])
         if mode == "training":
             # Class ID mask to mark class IDs supported by the dataset the image
             # came from.
