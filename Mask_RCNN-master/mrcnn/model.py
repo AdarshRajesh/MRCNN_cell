@@ -1960,9 +1960,6 @@ class MaskRCNN():
         # and zero padded.
         proposal_count = config.POST_NMS_ROIS_TRAINING if mode == "training"\
             else config.POST_NMS_ROIS_INFERENCE
-	print(proposal_count)
-	print(config.RPN_NMS_THRESHOLD)
-	print([rpn_class, rpn_bbox, anchors])
         rpn_rois = ProposalLayer(
             proposal_count=proposal_count,
             nms_threshold=config.RPN_NMS_THRESHOLD,
