@@ -1965,7 +1965,7 @@ class MaskRCNN():
             nms_threshold=config.RPN_NMS_THRESHOLD,
             name="ROI",
             config=config)([rpn_class, rpn_bbox, anchors])
-
+	print(rpn_rois)
         if mode == "training":
             # Class ID mask to mark class IDs supported by the dataset the image
             # came from.
