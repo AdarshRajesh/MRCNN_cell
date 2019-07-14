@@ -1965,7 +1965,7 @@ class MaskRCNN():
             nms_threshold=config.RPN_NMS_THRESHOLD,
             name="ROI",
             config=config)([rpn_class, rpn_bbox, anchors])
-	print(proposal_count)
+        print(proposal_count)
         print(config.RPN_NMS_THRESHOLD)
         print([rpn_class, rpn_bbox, anchors])
         if mode == "training":
