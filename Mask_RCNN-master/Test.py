@@ -442,7 +442,7 @@ def saveastiff(read_path,save_path,save_name):
     
     
     
-def RunTest(directory,tiffname):
+def RunTest(directory,tiffname,BALLOON_WEIGHTS_PATH):
     SAVE_DIR = directory+tiffname +'preds/'
     M_file = directory+tiffname+'m_vals.txt'
     mother_file = directory+tiffname+ 'mother_areas.txt'
