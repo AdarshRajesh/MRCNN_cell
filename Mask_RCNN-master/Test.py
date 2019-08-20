@@ -442,20 +442,34 @@ def saveastiff(read_path,save_path,save_name):
     
     
     
-def RunTest(directory,tiffname,BALLOON_WEIGHTS_PATH):
-    SAVE_DIR = directory+tiffname +'preds/'
-    M_file = directory+tiffname+'m_vals.txt'
-    mother_file = directory+tiffname+ 'mother_areas.txt'
-    daughter_file = directory+tiffname +'daughter_areas.txt'
-    M_mask_dir = directory+tiffname+ 'mother_masks'
-    D_mask_dir = directory+tiffname+ 'daughter_masks'
-    TEST_DIR = directory+tiffname
-    MODEL_DIR = directory+'logs4/'
+def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE = '/cpu:0'):
+    SAVE_DIR = save_directory+tiffname +'preds/'
+    M_file = save_directory+tiffname+'m_vals.txt'
+    mother_file = save_directory+tiffname+ 'mother_areas.txt'
+    daughter_file = save_directory+tiffname +'daughter_areas.txt'
+    M_mask_dir = save_directory+tiffname+ 'mother_masks'
+    D_mask_dir = save_directory+tiffname+ 'daughter_masks'
+    TEST_DIR = save_directory+tiffname
+    MODEL_DIR = save_directory+'logs4/'
+
+        #unstack('Z:/Adarsh/20181212/data/xy01c1.tif','Z:/Adarsh/Segmentation_project/GUI/xy01c1/Phase/','xy01c1_')
+    unstack(read_directory+tiffname[:-1]+'.tif',save_directory+tiffname+'Phase/',tiffname[:-1]+'_')
+    unstack(read_directory+tiffname[:-2]+'2.tif',save_directory+tiffname+'Phase/',tiffname[:-2]+'2_')
+    unstack(read_directory+tiffname[:-2]+'3.tif',save_directory+tiffname+'Phase/',tiffname[:-2]+'3_')
+    separate_traps(save_directory+tiffname+'/Phase/',save_directory+tiffile+'/test/')
+    separate_traps(save_directory+tiffname[:-2]+'2/Phase/',save_directory+tiffname[:-2]+'2/intensity/')
+    separate_traps(save_directory+tiffname[:-2]+'3/Phase/',save_directory+tiffname[:-2]+'3/intensity/')
     
-    DEVICE = "/gpu:0"  # /cpu:0 or /gpu:0
-
+    
+    
+    #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
+    config = balloon.BalloonConfig()
     TEST_MODE = "inference"
-
+    
+        # Create model in inference mode
+    with tf.device(DEVICE):
+        model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR,
+                                config=config)
     # Load validation dataset
     dataset = balloon.BalloonDataset()
     dataset.load_balloon(TEST_DIR, "test")
@@ -466,10 +480,6 @@ def RunTest(directory,tiffname,BALLOON_WEIGHTS_PATH):
     print("Images: {}\nClasses: {}".format(len(dataset.image_ids), dataset.class_names))
 
 
-    # Create model in inference mode
-    with tf.device(DEVICE):
-      model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR,
-                                config=config)
     # Set path to balloon weights file
 
     # Download file from the Releases page and set its path
@@ -485,8 +495,8 @@ def RunTest(directory,tiffname,BALLOON_WEIGHTS_PATH):
 
     idmap, v = order_test(dataset.image_ids)
     sorted_ids = [item[0] for item in sorted(idmap.items(), key=lambda x: x[1])]
-
-
+    
+    
     M_vals = []
     createFolder(SAVE_DIR)
     createFolder(M_mask_dir)
@@ -552,7 +562,7 @@ def RunTest(directory,tiffname,BALLOON_WEIGHTS_PATH):
     #   output.write(str(i)+'\n')
 
 
-    TRAP_SAVE = directory+tiffname+'traps/'
+    TRAP_SAVE = save_directory+tiffname+'traps/'
     convert2tif(SAVE_DIR,TRAP_SAVE)
 
-    saveastiff(TRAP_SAVE,directory+tiffname[:-1]+'_preds.tiff')    
+    saveastiff(TRAP_SAVE,save_directory+tiffname[:-1]+'_preds.tiff')
