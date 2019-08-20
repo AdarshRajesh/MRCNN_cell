@@ -1,9 +1,8 @@
+import os
 ROOT_DIR = os.path.abspath("../../")
-
 # Import Mask RCNN
 sys.path.append(ROOT_DIR) 
 import keras
-import os
 from mrcnn import utils
 from mrcnn import visualize
 from mrcnn.visualize import display_images
