@@ -38,7 +38,7 @@ import imgaug
 from imgaug import augmenters as iaa
 import cv2
 from samples.balloon import balloon
-import imagio
+import imageio
 
 
 
