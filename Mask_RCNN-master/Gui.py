@@ -83,12 +83,27 @@ def ordered_id(id_mapping,sorted_vals,n):
   #print(name)
   ordered_ids = sorted_vals.index(id_mapping[n])
   return ordered_ids
-  
-  
-idmap, v = order_test(dataset.image_ids)
-ordered_id(idmap,v,2)
-sorted_ids = [item[0] for item in sorted(idmap.items(), key=lambda x: x[1])]
-inv_map = {v: k for k, v in idmap.items()}
+
+def prepare_dataset(directory,tiffname,DEVICE = "/cpu:0")
+  TEST_DIR = directory+tiffname
+  #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
+  config = balloon.BalloonConfig()
+  TEST_MODE = "inference"
+
+      # Create model in inference mode
+  with tf.device(DEVICE):
+      model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR,
+                              config=config)
+  # Load validation dataset
+  dataset = balloon.BalloonDataset()
+  dataset.load_balloon(TEST_DIR, "test")
+
+  # Must call before using the dataset
+  dataset.prepare()
+  idmap, v = order_test(dataset.image_ids)
+  ordered_id(idmap,v,2)
+  sorted_ids = [item[0] for item in sorted(idmap.items(), key=lambda x: x[1])]
+  inv_map = {v: k for k, v in idmap.items()}
 
 
 
