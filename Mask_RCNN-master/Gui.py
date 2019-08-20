@@ -53,17 +53,17 @@ def find_cell_cycles(file):
     all_cycles.append(cycle)
   return all_cycles
   
-  def filter_cell_cycle_counts(cycle_counts):
-    for well in cycle_counts:
-        del_indices =[]
-        #print(len(well))
-        if len(well)!=0:
-            for i in range(len(well)-1):
-                if well[i+1]-well[i]<=3:
-                    del_indices.append(i)
-            #print(del_indices)      
-        for i in sorted(del_indices, reverse=True):
-            del well[i]    
+def filter_cell_cycle_counts(cycle_counts):
+  for well in cycle_counts:
+    del_indices =[]
+    #print(len(well))
+    if len(well)!=0:
+        for i in range(len(well)-1):
+            if well[i+1]-well[i]<=3:
+                del_indices.append(i)
+        #print(del_indices)      
+    for i in sorted(del_indices, reverse=True):
+        del well[i]    
             
 
 def order_test(ids):
