@@ -1,4 +1,5 @@
 import os
+import sys
 ROOT_DIR = os.path.abspath("../../")
 # Import Mask RCNN
 sys.path.append(ROOT_DIR) 
@@ -8,7 +9,6 @@ from mrcnn import visualize
 from mrcnn.visualize import display_images
 from mrcnn import model as modellib
 from mrcnn.model import log
-import sys
 import itertools
 import math
 import logging
