@@ -84,7 +84,7 @@ def ordered_id(id_mapping,sorted_vals,n):
   ordered_ids = sorted_vals.index(id_mapping[n])
   return ordered_ids
 
-def prepare_dataset(directory,tiffname,DEVICE = "/cpu:0")
+def prepare_dataset(directory,tiffname,DEVICE = "/cpu:0"):
   TEST_DIR = directory+tiffname
   #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
   config = balloon.BalloonConfig()
