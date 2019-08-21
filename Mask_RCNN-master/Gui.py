@@ -250,7 +250,8 @@ def run_gui(directory,tiffname):
         #----------------
 
 
-        def __init__(self, main, directory,tiffname):
+        def __init__(self, main, directory,tiffname,DEVICE):
+            prepare_dataset(directory,tiffname)
             #root=Tk()
             #frame=Frame(root,width=300,height=300)
             #frame.grid(row=0,column=0)
