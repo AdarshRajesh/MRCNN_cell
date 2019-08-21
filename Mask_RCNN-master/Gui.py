@@ -93,7 +93,8 @@ def ordered_id(id_mapping,sorted_vals,n):
   ordered_ids = sorted_vals.index(id_mapping[n])
   return ordered_ids
 
-def prepare_dataset(directory,tiffname,DEVICE):
+def prepare_dataset(MDir,directory,tiffname,DEVICE):
+  MODEL_DIR = MDir+'logs4/'
   TEST_DIR = directory+tiffname
   #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
   config = balloon.BalloonConfig()
@@ -252,15 +253,15 @@ def generate_intensity_vals(m_mask,d_mask,channel2,channel3):
 
 
 
-def run_gui(directory,tiffname,DEVICE = "/cpu:0"):
+def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
 
     class MainWindow:
 
         #----------------
 
 
-        def __init__(self, main, directory,tiffname,DEVICE):
-            prepare_dataset(directory,tiffname)
+        def __init__(self, main, Mod_dir,directory,tiffname,DEVICE):
+            prepare_dataset(Mod_dir,directory,tiffname,DEVICE)
             #root=Tk()
             #frame=Frame(root,width=300,height=300)
             #frame.grid(row=0,column=0)
@@ -795,5 +796,5 @@ def run_gui(directory,tiffname,DEVICE = "/cpu:0"):
             self.progress_bar["value"] = 0
             self.progress_bar.update()            
     root = Tk()
-    MainWindow(root,directory,tiffname)
+    MainWindow(root,Mod_dir,directory,tiffname,DEVICE)
     root.mainloop()
