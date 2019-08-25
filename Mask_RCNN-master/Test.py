@@ -447,9 +447,9 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     M_mask_dir = save_directory+tiffname+ 'mother_masks'
     D_mask_dir = save_directory+tiffname+ 'daughter_masks'
     TEST_DIR = save_directory+tiffname
-    MODEL_DIR = save_directory+'logs4/'
-    M_axes_file = save_directory+tiffname+mother_axes'
-    D_axes_file = save_directory+tiffname+daughter_axes'
+    MODEL_DIR = save_directory+'logs/'
+    M_axes_file = save_directory+tiffname+'mother_axes'
+    D_axes_file = save_directory+tiffname+'daughter_axes'
 
         #unstack('Z:/Adarsh/20181212/data/xy01c1.tif','Z:/Adarsh/Segmentation_project/GUI/xy01c1/Phase/','xy01c1_')
     unstack(read_directory+tiffname[:-1]+'.tif',save_directory+tiffname+'Phase/',tiffname[:-1]+'_')
