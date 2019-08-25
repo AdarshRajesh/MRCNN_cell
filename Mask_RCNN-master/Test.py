@@ -329,7 +329,7 @@ def find_mother_daughter(image_id, old_MA,dataset,model,config):
   Area_values = [M_Area,D_Area]
 
   
-  return moth_daught, Area_values,m, mask_md
+  return moth_daught, Area_values,m, mask_md,(rois[m][2]-rois[m][0],rois[m][3]-rois[m][1]),(rois[d][2]-rois[d][0],rois[d][3]-rois[d][1])
   
   
   
@@ -448,15 +448,17 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     D_mask_dir = save_directory+tiffname+ 'daughter_masks'
     TEST_DIR = save_directory+tiffname
     MODEL_DIR = save_directory+'logs4/'
+    M_axes_file = save_directory+tiffname+mother_axes'
+    D_axes_file = save_directory+tiffname+daughter_axes'
 
         #unstack('Z:/Adarsh/20181212/data/xy01c1.tif','Z:/Adarsh/Segmentation_project/GUI/xy01c1/Phase/','xy01c1_')
-    #unstack(read_directory+tiffname[:-1]+'.tif',save_directory+tiffname+'Phase/',tiffname[:-1]+'_')
-    #unstack(read_directory+tiffname[:-2]+'2.tif',save_directory+tiffname[:-2]+'2/Phase/',tiffname[:-2]+'2_')
-    #unstack(read_directory+tiffname[:-2]+'3.tif',save_directory+tiffname[:-2]+'3/Phase/',tiffname[:-2]+'3_')
+    unstack(read_directory+tiffname[:-1]+'.tif',save_directory+tiffname+'Phase/',tiffname[:-1]+'_')
+    unstack(read_directory+tiffname[:-2]+'2.tif',save_directory+tiffname[:-2]+'2/Phase/',tiffname[:-2]+'2_')
+    unstack(read_directory+tiffname[:-2]+'3.tif',save_directory+tiffname[:-2]+'3/Phase/',tiffname[:-2]+'3_')
     print('separating traps...')
-    #separate_traps(save_directory+tiffname+'Phase/',save_directory+tiffname+'/test/')
-    #separate_traps(save_directory+tiffname[:-2]+'2/Phase/',save_directory+tiffname[:-2]+'2/intensity/')
-    #separate_traps(save_directory+tiffname[:-2]+'3/Phase/',save_directory+tiffname[:-2]+'3/intensity/')
+    separate_traps(save_directory+tiffname+'Phase/',save_directory+tiffname+'/test/')
+    separate_traps(save_directory+tiffname[:-2]+'2/Phase/',save_directory+tiffname[:-2]+'2/intensity/')
+    separate_traps(save_directory+tiffname[:-2]+'3/Phase/',save_directory+tiffname[:-2]+'3/intensity/')
     
     
     
@@ -506,41 +508,46 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     createFolder(SAVE_DIR)
     createFolder(M_mask_dir)
     createFolder(D_mask_dir)
-    MD_Areas = {}
+    #MD_Areas = {}
     M_Areas = []
     D_Areas = []
+    M_Axes = []
+    D_Axes = []
     count =0
     MA = []
     DA= []
+    MAx = []
+    DAx = []
     for n in tqdm((sorted_ids), total=len(sorted_ids)):
 
 
       name = dataset.image_info[n]['id']
       #print(name)
-      output,AV,M,masks = find_mother_daughter(n,MA,dataset,model,config)
+      output,AV,M,masks,maxis,daxis = find_mother_daughter(n,MA,dataset,model,config)
       #output,AV = find_mother_daughter(n,MA)
       masks = masks[:,64:192]
       masks = resize(masks, (128,64), mode='constant', preserve_range=True)
       ret,thresh_img = cv2.threshold(masks,0.5,1,cv2.THRESH_BINARY)
-
       MA.append(AV[0])
       DA.append(AV[1])
+      MAx.append(maxis)
+      DAx.append(daxis)
       moth_mask = thresh_img[:,:,0]*255
       daught_mask = thresh_img[:,:,1]*255
       if len(name) == 19:
-        MD_Areas[name[0:7]+ name[7:10].zfill(3) + name[10:-4]+'_mask.tif'] = AV
+        #MD_Areas[name[0:7]+ name[7:10].zfill(3) + name[10:-4]+'_mask.tif'] = AV
         cv2.imwrite(SAVE_DIR+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_mask.tif', output)
         cv2.imwrite(M_mask_dir+'/'+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_Mmask.jpg', moth_mask)
         cv2.imwrite(D_mask_dir+'/'+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_Dmask.jpg', daught_mask)
 
       elif len(name) == 18:
-        MD_Areas[name[0:7]+ name[7:9].zfill(3) + name[9:-4]+'_mask.tif'] = AV
+        #MD_Areas[name[0:7]+ name[7:9].zfill(3) + name[9:-4]+'_mask.tif'] = AV
         cv2.imwrite(SAVE_DIR+name[0:7] + name[7:9].zfill(3)+name[9:-4]+'_mask.tif', output)
         cv2.imwrite(M_mask_dir+name[0:7] + name[7:9].zfill(3)+name[9:-4]+'_Mmask.jpg', moth_mask)
         cv2.imwrite(D_mask_dir+name[0:7] + name[7:9].zfill(3)+name[9:-4]+'_Dmask.jpg', daught_mask)
 
       elif len(name) == 17:
-        MD_Areas[name[0:7]+ name[7:8].zfill(3) + name[8:-4]+'_mask.tif'] = AV
+        #MD_Areas[name[0:7]+ name[7:8].zfill(3) + name[8:-4]+'_mask.tif'] = AV
         cv2.imwrite(SAVE_DIR+name[0:7]+ name[7:8].zfill(3)+name[8:-4]+'_mask.tif', output)
         cv2.imwrite(M_mask_dir+name[0:7]+ name[7:8].zfill(3)+name[8:-4]+'_Mmask.jpg', moth_mask)
         cv2.imwrite(D_mask_dir+name[0:7]+ name[7:8].zfill(3)+name[8:-4]+'_Dmask.jpg', daught_mask)
@@ -549,6 +556,8 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
       if count == (len(sorted_ids)/6)-1:
         M_Areas.append(MA)
         D_Areas.append(DA)
+        M_Axes.append(MAx)
+        D_Axes.append(DAx)
         MA = []
         DA = []
         count = -1
@@ -556,6 +565,8 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
       count +=1
       M_vals.append(M)    
     #print(M_vals)
+    np.save(M_axes_file, M_Axes)
+    np.save(D_axes_file,D_Axes)
     np.savetxt(M_file, M_vals,fmt = '%i')    
     np.savetxt(mother_file,M_Areas)
     np.savetxt(daughter_file, D_Areas)
