@@ -15,13 +15,8 @@ import logging
 import json
 import re
 import random
-import math
-import time
 import numpy as np
 import tensorflow as tf
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import skimage
 from skimage.transform import resize
 #import tqdm
@@ -39,7 +34,7 @@ from imgaug import augmenters as iaa
 import cv2
 from samples.balloon import balloon
 import imageio
-
+from PIL import Image,ImageSequence
 
 
 def createFolder(directory):
@@ -52,9 +47,10 @@ def createFolder(directory):
         
         
 def unstack(tiff_image,save_path,save_name):
+    print('unstacking :', save_name)
     createFolder(save_path)
     im = Image.open(tiff_image)
-    for i, page in enumerate(ImageSequence.Iterator(im)):
+    for i, page in tqdm(enumerate(ImageSequence.Iterator(im))):
         page.save(save_path + save_name + str(i).zfill(3)+".tif" )
         
 def separate_traps(read_path,save_path):
@@ -91,13 +87,7 @@ def separate_traps(read_path,save_path):
         cv2.imwrite(save_path + str(id_)[0:-4] +"_im_5.tif", im5)
         cv2.imwrite(save_path + str(id_)[0:-4] +"_im_6.tif", im6)
         
-class InferenceConfig(config.__class__):
-    # Run detection on one image at a time
-    GPU_COUNT = 1
-    IMAGES_PER_GPU = 1
 
-config = InferenceConfig()
-config.display()
 
 
 def get_ax(rows=1, cols=1, size=16):
@@ -113,7 +103,7 @@ def get_ax(rows=1, cols=1, size=16):
     
     
     
-def find_mother_daughter(image_id, old_MA):
+def find_mother_daughter(image_id, old_MA,dataset,model,config):
   mask_md = np.zeros((256,256,2))
   if old_MA == []:
     old_M_Area = 0
@@ -343,7 +333,7 @@ def find_mother_daughter(image_id, old_MA):
   
   
   
-def order_test(ids):
+def order_test(ids,dataset):
   id_map = {}
   for i in ids:
     name = dataset.image_info[i]['id']
@@ -358,7 +348,7 @@ def order_test(ids):
   
   
 def ordered_id(id_mapping,sorted_vals,n):
-  name = dataset.image_info[n]['id']
+  #name = dataset.image_info[n]['id']
   #print(name)
   ordered_ids = sorted_vals.index(id_mapping[n])
   return ordered_ids
@@ -379,8 +369,7 @@ def indvtif(read_path,save_path):
   save5 = save_path+'/trap5/'
   save6 = save_path+'/trap6/'
 
-  ids = sorted(next(os.walk(read_path))[2])
-  print(len(ids))
+
 
   for n in tqdm(range(int(len(ids)/6))):
     im1 = skimage.io.imread(read_path+ids[6*n+0])
@@ -438,9 +427,19 @@ def saveastiff(read_path,save_path,save_name):
     #print(x)
     imageio.mimwrite(save_path + save_name,x)
     
+def resize_all(read_path):
+    ids = sorted(next(os.walk(read_path))[2])
+    height_old = 128
+    width_old = 64
+    for n in tqdm(range(len(ids))):
+        im1 = skimage.io.imread(read_path+ids[n])
+        im1n = resize(im1[:,64:192,:], (height_old, width_old), mode='constant', preserve_range=True)
+        im1n = im1n.astype(np.uint16)
+        skimage.io.imsave(read_path+ids[n], im1n)
     
     
 def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE = '/cpu:0'):
+
     SAVE_DIR = save_directory+tiffname +'preds/'
     M_file = save_directory+tiffname+'m_vals.txt'
     mother_file = save_directory+tiffname+ 'mother_areas.txt'
@@ -451,17 +450,25 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     MODEL_DIR = save_directory+'logs4/'
 
         #unstack('Z:/Adarsh/20181212/data/xy01c1.tif','Z:/Adarsh/Segmentation_project/GUI/xy01c1/Phase/','xy01c1_')
-    unstack(read_directory+tiffname[:-1]+'.tif',save_directory+tiffname+'Phase/',tiffname[:-1]+'_')
-    unstack(read_directory+tiffname[:-2]+'2.tif',save_directory+tiffname+'Phase/',tiffname[:-2]+'2_')
-    unstack(read_directory+tiffname[:-2]+'3.tif',save_directory+tiffname+'Phase/',tiffname[:-2]+'3_')
-    separate_traps(save_directory+tiffname+'/Phase/',save_directory+tiffile+'/test/')
-    separate_traps(save_directory+tiffname[:-2]+'2/Phase/',save_directory+tiffname[:-2]+'2/intensity/')
-    separate_traps(save_directory+tiffname[:-2]+'3/Phase/',save_directory+tiffname[:-2]+'3/intensity/')
+    #unstack(read_directory+tiffname[:-1]+'.tif',save_directory+tiffname+'Phase/',tiffname[:-1]+'_')
+    #unstack(read_directory+tiffname[:-2]+'2.tif',save_directory+tiffname[:-2]+'2/Phase/',tiffname[:-2]+'2_')
+    #unstack(read_directory+tiffname[:-2]+'3.tif',save_directory+tiffname[:-2]+'3/Phase/',tiffname[:-2]+'3_')
+    print('separating traps...')
+    #separate_traps(save_directory+tiffname+'Phase/',save_directory+tiffname+'/test/')
+    #separate_traps(save_directory+tiffname[:-2]+'2/Phase/',save_directory+tiffname[:-2]+'2/intensity/')
+    #separate_traps(save_directory+tiffname[:-2]+'3/Phase/',save_directory+tiffname[:-2]+'3/intensity/')
     
     
     
     #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
     config = balloon.BalloonConfig()
+    class InferenceConfig(config.__class__):
+        # Run detection on one image at a time
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+
+    config = InferenceConfig()
+    config.display()	
     TEST_MODE = "inference"
     
         # Create model in inference mode
@@ -471,9 +478,9 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     # Load validation dataset
     dataset = balloon.BalloonDataset()
     dataset.load_balloon(TEST_DIR, "test")
-
-    # Must call before using the dataset
     dataset.prepare()
+    # Must call before using the dataset
+
 
     print("Images: {}\nClasses: {}".format(len(dataset.image_ids), dataset.class_names))
 
@@ -491,7 +498,7 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     print("Loading weights ", weights_path)
     model.load_weights(weights_path, by_name=True)
 
-    idmap, v = order_test(dataset.image_ids)
+    idmap, v = order_test(dataset.image_ids,dataset)
     sorted_ids = [item[0] for item in sorted(idmap.items(), key=lambda x: x[1])]
     
     
@@ -510,7 +517,7 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
 
       name = dataset.image_info[n]['id']
       #print(name)
-      output,AV,M,masks = find_mother_daughter(n,MA)
+      output,AV,M,masks = find_mother_daughter(n,MA,dataset,model,config)
       #output,AV = find_mother_daughter(n,MA)
       masks = masks[:,64:192]
       masks = resize(masks, (128,64), mode='constant', preserve_range=True)
@@ -523,8 +530,8 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
       if len(name) == 19:
         MD_Areas[name[0:7]+ name[7:10].zfill(3) + name[10:-4]+'_mask.tif'] = AV
         cv2.imwrite(SAVE_DIR+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_mask.tif', output)
-        cv2.imwrite(M_mask_dir+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_Mmask.jpg', moth_mask)
-        cv2.imwrite(D_mask_dir+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_Dmask.jpg', daught_mask)
+        cv2.imwrite(M_mask_dir+'/'+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_Mmask.jpg', moth_mask)
+        cv2.imwrite(D_mask_dir+'/'+name[0:7]+ name[7:10].zfill(3) + name[10:-4] +'_Dmask.jpg', daught_mask)
 
       elif len(name) == 18:
         MD_Areas[name[0:7]+ name[7:9].zfill(3) + name[9:-4]+'_mask.tif'] = AV
@@ -563,4 +570,5 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
     TRAP_SAVE = save_directory+tiffname+'traps/'
     convert2tif(SAVE_DIR,TRAP_SAVE)
 
-    saveastiff(TRAP_SAVE,save_directory+tiffname[:-1]+'_preds.tiff')
+    saveastiff(TRAP_SAVE,save_directory,tiffname[:-1]+'_preds.tiff')
+    resize_all(save_directory+tiffname+'preds/')
