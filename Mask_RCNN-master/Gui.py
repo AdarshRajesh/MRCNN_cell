@@ -10,7 +10,6 @@ from mrcnn.visualize import display_images
 from mrcnn import model as modellib
 from mrcnn.model import log
 import itertools
-import math
 import logging
 import json
 import re
@@ -18,11 +17,6 @@ import random
 import math
 import numpy as np
 import tensorflow as tf
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import skimage
-from skimage.transform import resize
 #import tqdm
 from tqdm import tqdm_notebook as tqdm
 import time
@@ -47,6 +41,13 @@ from tkinter.filedialog import askopenfilename
 from PIL import Image, ImageTk
 import tkinter.simpledialog
 from tkinter.ttk import *
+
+def createFolder(directory):
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError:
+        print ('Error: Creating directory. ' +  directory)
 
 def find_cell_cycles(file):
   all_cycles = []
@@ -73,7 +74,7 @@ def filter_cell_cycle_counts(cycle_counts):
         del well[i]    
             
 
-def order_test(ids):
+def order_test(dataset,ids):
   id_map = {}
   for i in ids:
     name = dataset.image_info[i]['id']
@@ -88,36 +89,23 @@ def order_test(ids):
   
    
 def ordered_id(id_mapping,sorted_vals,n):
-  name = dataset.image_info[n]['id']
+  #name = dataset.image_info[n]['id']
   #print(name)
   ordered_ids = sorted_vals.index(id_mapping[n])
   return ordered_ids
 
-def prepare_dataset(MDir,directory,tiffname,DEVICE):
-  MODEL_DIR = MDir+'logs4/'
+def prepare_dataset(directory,tiffname,DEVICE= "/cpu:0"):
   TEST_DIR = directory+tiffname
-  #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
-  config = balloon.BalloonConfig()
-  TEST_MODE = "inference"
-
-      # Create model in inference mode
-  with tf.device(DEVICE):
-      model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR,
-                              config=config)
   # Load validation dataset
   dataset = balloon.BalloonDataset()
   dataset.load_balloon(TEST_DIR, "test")
 
   # Must call before using the dataset
   dataset.prepare()
-  idmap, v = order_test(dataset.image_ids)
-  ordered_id(idmap,v,2)
-  sorted_ids = [item[0] for item in sorted(idmap.items(), key=lambda x: x[1])]
-  inv_map = {v: k for k, v in idmap.items()}
+  return dataset
 
-
-
-def get_new_daughter(image_id, m, dx,dy):
+  
+def get_new_daughter(dataset,model,config,image_id, m, dx,dy):
   flag =0
   #image_id = random.choice(dataset.image_ids)
   #image_id = 201
@@ -216,7 +204,7 @@ def get_new_daughter(image_id, m, dx,dy):
   Area_values = D_Area
 
   
-  return moth_daught,Area_values
+  return moth_daught,Area_values,(rois[d][2]-rois[d][0],rois[d][3]-rois[d][1])
 #Area_values
 
 
@@ -253,15 +241,38 @@ def generate_intensity_vals(m_mask,d_mask,channel2,channel3):
 
 
 
-def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
+def run_gui(directory,tiffname,dataset,weights_path,DEVICE = "/cpu:0"):
+    MODEL_DIR = directory+'logs/'
+    #DEVICE = "/cpu:0"  # /cpu:0 or /gpu:0
+    config = balloon.BalloonConfig()
+    class InferenceConfig(config.__class__):
+        # Run detection on one image at a time
+        GPU_COUNT = 1
+        IMAGES_PER_GPU = 1
+
+    config = InferenceConfig()
+    #config.display()
+    TEST_MODE = "inference"
+
+      # Create model in inference mode
+    with tf.device(DEVICE):
+        model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR,
+                              config=config)
+    model.load_weights(weights_path, by_name=True)
+    idmap, v = order_test(dataset,dataset.image_ids)
+    ordered_id(idmap,v,2)
+    sorted_ids = [item[0] for item in sorted(idmap.items(), key=lambda x: x[1])]
+    inv_map = {v: k for k, v in idmap.items()}
+
 
     class MainWindow:
 
         #----------------
 
 
-        def __init__(self, main, Mod_dir,directory,tiffname,DEVICE):
-            prepare_dataset(Mod_dir,directory,tiffname,DEVICE)
+        def __init__(self, main,directory,tiffname):
+
+            #prepare_dataset(Mod_dir,directory,tiffname,DEVICE)
             #root=Tk()
             #frame=Frame(root,width=300,height=300)
             #frame.grid(row=0,column=0)
@@ -278,6 +289,7 @@ def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
             self.directory = directory
             self.tiffname = tiffname
             self.D_Areas = np.loadtxt(self.directory+self.tiffname+'daughter_areas.txt')
+            self.D_Axes = np.load(self.directory+self.tiffname+'daughter_axes.npy')
             self.read_path = self.directory+self.tiffname+'preds/'
             self.save_path = self.directory+self.tiffname+'traps/'
 
@@ -535,8 +547,8 @@ def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
         def find_img_dtr(self,x,y,tiffile,mvals):
             #SAVE_DIR = 'D:/Segmentation_project/GUI/xy16c1/xy16c1_indv_preds/'        
             SAVE_DIR = self.directory+self.tiffname+'preds/'
-            print('tiffile=')
-            print(tiffile)
+            #print('tiffile=')
+            #print(tiffile)
             img_name  = tiffile[-7:-4]
             print(img_name)
             if x in range(18,82):
@@ -562,7 +574,7 @@ def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
 
             im_id = inv_map[img_num+'_'+img_name]
             M = mvals[sorted_ids.index(im_id)]
-            mod_img,da = get_new_daughter(im_id,M, x,y)
+            mod_img,da,Dax = get_new_daughter(dataset,model,config,im_id,M, x,y)
             #plt.figure()
             #plt.imshow(mod_img/65535)
             name = dataset.image_info[im_id]['id']
@@ -586,9 +598,11 @@ def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
             c = sorted_ids.index(im_id)%self.timepoints
             print(r,c)
             self.D_Areas[r,c] = da
+            self.D_Axes[r,c] = Dax
             self.modfiles = img_name
             #np.savetxt('D:/Segmentation_project/GUI/xy16c1/xy16c1_daughter_areas.txt',self.D_Areas)
             np.savetxt(self.directory+self.tiffname+'daughter_areas.txt',self.D_Areas)
+            np.save(self.directory+self.tiffname+'daughter_axes',self.D_Axes)
         def instantrefreshButton(self):    
             #print(self.modfiles)
             #filenums = [int(x) for x in self.modfiles]
@@ -604,7 +618,7 @@ def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
             #for n in self.modfiles:
             n = int(self.modfiles)            
             im1 = skimage.io.imread(self.read_path+ids[6*n+0])
-            print(im1.shape)
+            #print(im1.shape)
             im2 = skimage.io.imread(self.read_path+ids[6*n+1])
             im3 = skimage.io.imread(self.read_path+ids[6*n+2])
             im4 = skimage.io.imread(self.read_path+ids[6*n+3])
@@ -796,5 +810,5 @@ def run_gui(Mod_dir,directory,tiffname,DEVICE = "/cpu:0"):
             self.progress_bar["value"] = 0
             self.progress_bar.update()            
     root = Tk()
-    MainWindow(root,Mod_dir,directory,tiffname,DEVICE)
+    MainWindow(root,directory,tiffname)
     root.mainloop()
