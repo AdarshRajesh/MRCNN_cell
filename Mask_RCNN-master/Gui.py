@@ -207,6 +207,15 @@ def get_new_daughter(dataset,model,config,image_id, m, dx,dy):
   return moth_daught,Area_values,(rois[d][2]-rois[d][0],rois[d][3]-rois[d][1])
 #Area_values
 
+def ClearMemory(save_directory,tiffname):
+    shutil.rmtree(save_directory+tiffname[:-2]+'2')
+    shutil.rmtree(save_directory+tiffname[:-2]+'3')
+    shutil.rmtree(save_directory+tiffname+'daughter_masks')
+    shutil.rmtree(save_directory+tiffname+'mother_masks')	
+    shutil.rmtree(save_directory+tiffname+'Phase')	    
+    shutil.rmtree(save_directory+tiffname+'preds')	
+    shutil.rmtree(save_directory+tiffname+'test')
+    shutil.rmtree(save_directory+tiffname+'traps')
 
 def generate_intensity_vals(m_mask,d_mask,channel2,channel3):
     c2 = cv2.imread(channel2,cv2.IMREAD_UNCHANGED)
