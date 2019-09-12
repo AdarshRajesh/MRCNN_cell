@@ -311,9 +311,13 @@ def find_mother_daughter(image_id, old_MA,dataset,model,config):
     #  daughter_image = image
   if m==-1 and d==-1:
     moth_daught = image
+    ax_m = (0,0)
+    ax_d = (0,0)
   elif m!=-1 and d==-1:
     moth_daught = mother_image
     mask_md[:,:,0] = r['masks'][:,:,m]
+    ax_d = (0,0)
+    ax_m = (rois[m][2]-rois[m][0],rois[m][3]-rois[m][1])
   elif m!=-1 and d!=-1:
 
     rois_md = np.vstack([rois[m],rois[d]])
@@ -324,13 +328,14 @@ def find_mother_daughter(image_id, old_MA,dataset,model,config):
     moth_daught = visualize.display_instances(image, rois_md, mask_md, class_ids_md, 
                                dataset.class_names, r['scores'],
                                 title="Predictions", colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 1.0)])
-   
+
+    ax_m = (rois[m][2]-rois[m][0],rois[m][3]-rois[m][1])
+    ax_d = (rois[d][2]-rois[d][0],rois[d][3]-rois[d][1])
   #Area_values = {}
   Area_values = [M_Area,D_Area]
 
   
-  return moth_daught, Area_values,m, mask_md,(rois[m][2]-rois[m][0],rois[m][3]-rois[m][1]),(rois[d][2]-rois[d][0],rois[d][3]-rois[d][1])
-  
+  return moth_daught, Area_values,m, mask_md,ax_m,ax_d
   
   
 def order_test(ids,dataset):
@@ -436,9 +441,21 @@ def resize_all(read_path):
         im1n = resize(im1[:,64:192,:], (height_old, width_old), mode='constant', preserve_range=True)
         im1n = im1n.astype(np.uint16)
         skimage.io.imsave(read_path+ids[n], im1n)
+  
+def RunAll(read_directory,save_directory,tiffname,totalfiles,BALLOON_WEIGHTS_PATH,DEVICE = '/cpu:0'):
+	Files = os.listdir(read_directory)
+	for i, file in enumerate(Files):
+	    if file[:-4] == tiffname[:-1]:
+	        print('starting from', Files[i])
+	        start_index = i
+	        break
+	for file in Files[i:i+totalfiles*3]:
+	    if file[-5] == '1':
+	        #print(file[:-4]+'/')
+	        RunTest(read_directory,save_directory,file[:-4]+'/',BALLOON_WEIGHTS_PATH,DEVICE )
+
     
-    
-def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE = '/cpu:0'):
+def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE ):
 
     SAVE_DIR = save_directory+tiffname +'preds/'
     M_file = save_directory+tiffname+'m_vals.txt'
@@ -560,6 +577,8 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
         D_Axes.append(DAx)
         MA = []
         DA = []
+        MAx =[]
+        DAx =[]
         count = -1
 
       count +=1
@@ -583,3 +602,4 @@ def RunTest(read_directory,save_directory,tiffname,BALLOON_WEIGHTS_PATH,DEVICE =
 
     saveastiff(TRAP_SAVE,save_directory,tiffname[:-1]+'_preds.tiff')
     resize_all(save_directory+tiffname+'preds/')
+
