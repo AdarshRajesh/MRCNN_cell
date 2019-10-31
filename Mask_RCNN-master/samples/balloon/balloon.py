@@ -270,11 +270,12 @@ def train(data_directory,model_path,log_path):
 
 
     augmentation = iaa.SomeOf((0, 1), [
-    iaa.Fliplr(0.5),
-    # Change brightness of images (50-150% of original value).
-    iaa.Multiply((0.5, 1.5)),
-    # Improve or worsen the contrast of images.
-    iaa.ContrastNormalization((0.5, 2.0))]             
+       iaa.Fliplr(0.5),
+       # Change brightness of images (50-150% of original value).
+       iaa.Multiply((0.5, 1.5)),
+       # Improve or worsen the contrast of images.
+       iaa.ContrastNormalization((0.5, 2.0))
+    ])            
 
     
     
