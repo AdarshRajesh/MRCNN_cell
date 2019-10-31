@@ -34,6 +34,7 @@ import datetime
 import numpy as np
 import skimage.draw
 from tqdm import tqdm
+from imgaug import augmenters as iaa
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
 
@@ -268,7 +269,13 @@ def train(data_directory,model_path,log_path):
         model.load_weights(weights_path, by_name=True)
 
 
-    
+    augmentation = iaa.SomeOf((0, 1), [
+    iaa.Fliplr(0.5),
+    # Change brightness of images (50-150% of original value).
+    iaa.Multiply((0.5, 1.5)),
+    # Improve or worsen the contrast of images.
+    iaa.ContrastNormalization((0.5, 2.0))]             
+
     
     
     # *** This training schedule is an example. Update to your needs ***
@@ -278,12 +285,9 @@ def train(data_directory,model_path,log_path):
     print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=30,
+                epochs=50,augmentation=augmentation,
                 layers='heads')
-    model.train(dataset_train, dataset_val,
-                learning_rate=config.LEARNING_RATE,
-                epochs=20,
-                layers='all')
+
 
 def color_splash(image, mask):
     """Apply color splash effect.
