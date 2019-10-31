@@ -72,7 +72,7 @@ class BalloonConfig(Config):
     STEPS_PER_EPOCH = 100
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.3
+    DETECTION_MIN_CONFIDENCE = 0.7
 
 
 ############################################################
@@ -280,7 +280,10 @@ def train(data_directory,model_path,log_path):
                 learning_rate=config.LEARNING_RATE,
                 epochs=30,
                 layers='heads')
-
+    model.train(dataset_train, dataset_val,
+                learning_rate=config.LEARNING_RATE,
+                epochs=20,
+                layers='all')
 
 def color_splash(image, mask):
     """Apply color splash effect.
